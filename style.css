@@ -1,0 +1,33 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: black;
+    height: 100vh;
+    cursor: text;
+}
+
+.editor {
+    border: none;
+    color: white;
+    padding: 10vh 20vw 0 20vw;
+    font-size: 16px;
+    font-family: "JetBrains Mono", "IBM Plex Mono", "Source Code Pro", "Cascadia Code", monospace;
+    height: 100vh;
+    border: white;
+    cursor: text;
+    tab-size: 4;
+}
+
+.editor:hover {
+    outline: none;
+    cursor: text;
+}
+
+.editor:focus {
+    outline: none;
+}
+
