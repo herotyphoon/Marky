@@ -5,29 +5,234 @@
 }
 
 body {
-    background-color: black;
+    background-color: #000;
     height: 100vh;
-    cursor: text;
+    color: #e5e7eb;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.nav {
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 4vh 0;
+    gap: 20px;
+}
+
+.nav span {
+    padding: 6px 14px;
+    cursor: pointer;
+    border: 1px solid #334155;
+    border-radius: 999px;
+    background: #020617;
+    color: #cbd5e1;
+    transition: all 0.2s ease;
+}
+
+.nav span:hover {
+    background: #0f172a;
+    border-color: #60a5fa;
+}
+
+.nav span.active {
+    background: #60a5fa;
+    color: #0f172a;
+    border-color: #60a5fa;
+    box-shadow: 0 0 12px rgba(96,165,250,0.5);
+}
+
+.editor,
+.preview {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 6vh 2rem;
+    font-size: 16px;
+    line-height: 1.7;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
 }
 
 .editor {
-    border: none;
-    color: white;
-    padding: 10vh 20vw 0 20vw;
-    font-size: 16px;
-    font-family: "JetBrains Mono", "IBM Plex Mono", "Source Code Pro", "Cascadia Code", monospace;
-    height: 100vh;
-    border: white;
     cursor: text;
     tab-size: 4;
-}
-
-.editor:hover {
-    outline: none;
-    cursor: text;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background-image: repeating-linear-gradient(
+        to right,
+        transparent,
+        transparent 31px,
+        rgba(255,255,255,0.04) 32px
+    );
 }
 
 .editor:focus {
     outline: none;
 }
 
+.preview {
+    cursor: default;
+}
+
+.preview h1, .preview h2, .preview h3,
+.preview h4, .preview h5, .preview h6 {
+    margin: 1.2em 0 0.6em;
+    font-weight: 600;
+}
+
+.preview p {
+    margin: 0.8em 0;
+}
+
+.preview blockquote {
+    margin: 1em 0;
+    padding: 0.6em 1em;
+    border-left: 3px solid #60a5fa;
+    background: #020617;
+    color: #cbd5f5;
+    border-radius: 4px;
+}
+
+.preview blockquote blockquote {
+    border-left-color: #93c5fd;
+    background: #010409;
+}
+
+.preview blockquote blockquote blockquote {
+    border-left-color: #c084fc;
+}
+
+.preview pre {
+    background: #020617;
+    color: #e2e8f0;
+    padding: 1.1em;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 1.2em 0;
+    border: 1px solid #1f2937;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.preview pre code {
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 0.9rem;
+}
+
+.preview code:not(pre code) {
+    background: #111827;
+    color: #93c5fd;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 0.85rem;
+}
+
+.preview ul,
+.preview ol {
+    margin: 0.8em 0 0.8em 1.5em;
+    padding-left: 1.2em;
+}
+
+.preview li {
+    margin: 0.25em 0;
+    line-height: 1.6;
+}
+
+.preview ul li::marker {
+    color: #60a5fa;
+}
+
+.preview ol li::marker {
+    color: #93c5fd;
+    font-weight: 500;
+}
+
+.preview ul ul,
+.preview ol ol {
+    margin-top: 0.3em;
+    opacity: 0.95;
+}
+
+.preview ul ul ul li::marker,
+.preview ol ol ol li::marker {
+    color: #c084fc;
+}
+
+.preview table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.2em 0;
+    background: #020617;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.preview tr:nth-child(even) {
+    background: #020617;
+}
+
+.preview tr:nth-child(odd) {
+    background: #000814;
+}
+
+.preview td,
+.preview th {
+    padding: 10px 14px;
+    border-bottom: 1px solid #1f2937;
+    text-align: left;
+}
+
+.preview th {
+    color: #93c5fd;
+    font-weight: 600;
+}
+
+.preview tr:last-child td {
+    border-bottom: none;
+}
+
+.preview a {
+    color: #60a5fa;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(96,165,250,0.4);
+    transition: all 0.15s ease;
+}
+
+.preview a:hover {
+    color: #93c5fd;
+    border-bottom: 1px solid #93c5fd;
+}
+
+.preview a:visited {
+    color: #a78bfa;
+    border-bottom-color: rgba(167,139,250,0.4);
+}
+
+.preview img {
+    max-width: 100%;
+    display: block;
+    margin: 1em 0;
+    border-radius: 8px;
+    border: 1px solid #1f2937;
+    background: #020617;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+.preview img:hover {
+    transform: scale(1.01);
+    transition: transform 0.15s ease;
+}
+.preview hr {
+    border: none;
+    height: 2px;
+    margin: 2em 0;
+    background: linear-gradient(
+        to right,
+        #020617 0%,
+        #1f2937 20%,
+        #475569 50%,
+        #1f2937 80%,
+        #020617 100%
+    );
+}
