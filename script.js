@@ -563,12 +563,9 @@ editor.addEventListener('input', () => {
 });
 
 editorBtn.addEventListener('click', () => {
-    try {
-        preview.style.display = 'none';
-        editor.style.removeProperty('display');
-    } catch (e) {
-    }
 
+    preview.classList.add('hidden');
+    editor.classList.remove('hidden');
     editorBtn.classList.add('active');
     previewBtn.classList.remove('active');
 
@@ -584,11 +581,9 @@ editorBtn.addEventListener('click', () => {
 });
 
 previewBtn.addEventListener('click', () => {
-    try {
-        editor.style.display = 'none';
-        preview.style.removeProperty('display');
-    } catch (e) {
-    }
+
+    editor.classList.add('hidden');
+    preview.classList.remove('hidden');
 
     previewBtn.classList.add('active');
     editorBtn.classList.remove('active');
@@ -626,17 +621,10 @@ menuBtn.addEventListener('click', (e) => {
     menuDropdown.classList.toggle('hidden');
 });
 
-document.addEventListener('click', () => {
-    menuDropdown.classList.add('hidden');
-
-    editor.focus();
-
-    const range = document.createRange();
-    const sel = window.getSelection();
-    range.selectNodeContents(editor);
-    range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
+document.addEventListener('click', (e) => {
+    if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+        menuDropdown.classList.add('hidden');
+    }
 });
 
 newBtn.addEventListener('click', () => {
