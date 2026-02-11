@@ -9,11 +9,36 @@
 </head>
 <body>
     <div class="nav">
-        <span class="editor-btn">Editor</span>
-        <span class="preview-btn">Preview</span>
+    
+        <div class="nav-left">
+            <span class="file-name">untitled.md</span>
+            <span class="unsaved-indicator hidden">●</span>
+        </div>
+    
+        <div class="nav-center">
+            <span class="editor-btn active">Editor</span>
+            <span class="preview-btn">Preview</span>
+        </div>
+    
+        <div class="nav-right">
+            <span class="menu-btn">⋯</span>
+    
+            <div class="menu-dropdown hidden">
+                <div class="menu-item new-btn">New</div>
+                <div class="menu-item open-btn">Open</div>
+                <div class="menu-item save-btn">Save</div>
+                <div class="menu-item saveas-btn">Save As</div>
+            </div>
+        </div>
+    
     </div>
+    
+    
+    <input type="file" class="file-input" accept=".md,.txt" hidden>
+
     <article class="editor" contenteditable="plaintext-only" spellcheck="true" autofocus="true"></article>
     <article class="preview" style="display: none;"></article>
+    
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 async function compress(text) {
+
     const encoder = new TextEncoder();
     const bytes = encoder.encode(text);
 
@@ -12,9 +13,11 @@ async function compress(text) {
 
     const compressedText = new Uint8Array(buffer).toBase64({ alphabet: 'base64url' });
     return compressedText;
+
 }
 
 async function decompress(compressedText) {
+
     if (!compressedText) return ''; 
 
     const bytes = Uint8Array.fromBase64(compressedText, { alphabet: 'base64url' });
@@ -29,21 +32,29 @@ async function decompress(compressedText) {
 
     const text = new TextDecoder().decode(buffer);
     return text;
+
 }
 
 async function set(hash) {
+
     const content = await decompress(hash.slice(1));
     editor.textContent = content
+
 }
 
 async function get() {
+
     const content = editor.textContent;
 
     const hash = '#' + await compress(content);
     return hash;
+
 }
 
 async function save() {
+
+    if (currentFileHandle) return;
+
     const hash = await get();
 
     if (location.hash !== hash) {
@@ -54,52 +65,62 @@ async function save() {
             console.error('Failed to save to localStorage:', e);
         }
     }
+
 }
 
 async function load() {
+
     try {
         let content = '';
+        let fileRestored = false;
 
-        if (location.hash && location.hash.length > 1) {
-            content = await decompress(location.hash.slice(1));
-        } else {
-            const storedHash = localStorage.getItem('hash');
-            if (storedHash) {
-                content = await decompress(storedHash.slice(1));
+        if (supportsFileSystemAccess) {
+            const savedHandle = await getSavedHandle();
+
+            if (savedHandle) {
+                const hasPermission = await verifyPermission(savedHandle);
+
+                if (hasPermission) {
+                    currentFileHandle = savedHandle;
+                    updateFileName(savedHandle.name);
+
+                    const file = await savedHandle.getFile();
+                    content = await file.text();
+
+                    fileRestored = true;
+                }
+            }
+        }
+
+        if (!fileRestored) {
+            if (location.hash && location.hash.length > 1) {
+                content = await decompress(location.hash.slice(1));
+            } else {
+                const storedHash = localStorage.getItem('hash');
+                if (storedHash) {
+                    content = await decompress(storedHash.slice(1));
+                }
             }
         }
 
         if (content) {
             editor.textContent = content;
+            lastSavedContent = content;
+            markDirty(false);
 
             const tokens = tokenizer(content);
             preview.innerHTML = parser(tokens);
             updatePageTitleFromTokens(tokens);
-
-            editor.style.display = 'none';
-            preview.style.removeProperty('display');
-
-            previewBtn.classList.add('active');
-            editorBtn.classList.remove('active');
-        } else {
-            preview.style.display = 'none';
-            editor.style.removeProperty('display');
-
-            editorBtn.classList.add('active');
-            previewBtn.classList.remove('active');
-
-            editor.focus();
         }
 
     } catch (e) {
         console.error("Load failed:", e);
-
-        preview.style.display = 'none';
-        editor.style.removeProperty('display');
     }
+
 }
 
 function debounce(ms, func) {
+
     let timer;
 
     const debouncedFunc = (...args) => {
@@ -107,6 +128,7 @@ function debounce(ms, func) {
       timer = setTimeout(() => func(...args), ms)
     }
     return debouncedFunc;
+
 }
 
 function escapeHTML(str) {
@@ -424,13 +446,121 @@ function updatePageTitleFromTokens(tokens) {
     }
 }
 
+function downloadFile(filename, content) {
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+function markDirty(state) {
+    isDirty = state;
+    document.querySelector('.unsaved-indicator')
+        .classList.toggle('hidden', !state);
+
+    saveBtn.style.opacity = state ? "1" : "0.5";
+    saveBtn.style.pointerEvents = state ? "auto" : "none";
+}
+
+async function verifyPermission(handle) {
+    const options = { mode: 'readwrite' };
+
+    if ((await handle.queryPermission(options)) === 'granted') {
+        return true;
+    }
+
+    if ((await handle.requestPermission(options)) === 'granted') {
+        return true;
+    }
+
+    return false;
+}
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+
+        request.onupgradeneeded = () => {
+            request.result.createObjectStore(STORE_NAME);
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function saveHandle(handle) {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).put(handle, "file");
+    return tx.complete;
+}
+
+async function getSavedHandle() {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get("file");
+
+        request.onsuccess = () => {
+            resolve(request.result);
+        };
+
+        request.onerror = () => {
+            reject(request.error);
+        };
+    });
+}
+
+function updateFileName(name) {
+    currentFileName = name;
+    const label = document.querySelector('.file-name');
+    if (label) label.textContent = name;
+}
+
+const supportsFileSystemAccess = 'showOpenFilePicker' in window;
+
+const DB_NAME = "markyDB";
+const STORE_NAME = "fileHandles";
+
+let isDirty = false;
+let lastSavedContent = "";
+
+let currentFileHandle = null;
+let currentFileName = "untitled.md";
+
 const editor = document.querySelector('.editor');
 const preview = document.querySelector('.preview');
 const editorBtn = document.querySelector('.editor-btn');
 const previewBtn = document.querySelector('.preview-btn');
+const menuBtn = document.querySelector('.menu-btn');
+const menuDropdown = document.querySelector('.menu-dropdown');
+const newBtn = document.querySelector('.new-btn');
+const openBtn = document.querySelector('.open-btn');
+const saveBtn = document.querySelector('.save-btn');
+const saveAsBtn = document.querySelector('.saveas-btn');
+const fileInput = document.querySelector('.file-input');
+
 let cachedText = editor.textContent;
 
 editor.addEventListener('input', debounce(500, save));
+
+editor.addEventListener('input', () => {
+    const current = editor.textContent;
+
+    if (current !== lastSavedContent) {
+        markDirty(true);
+    } else {
+        markDirty(false);
+    }
+});
 
 editorBtn.addEventListener('click', () => {
     try {
@@ -490,5 +620,168 @@ editor.addEventListener('input', debounce(500, () => {
     const tokens = tokenizer(editor.textContent);
     updatePageTitleFromTokens(tokens);
 }));
+
+menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuDropdown.classList.toggle('hidden');
+});
+
+document.addEventListener('click', () => {
+    menuDropdown.classList.add('hidden');
+
+    editor.focus();
+
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+});
+
+newBtn.addEventListener('click', () => {
+    if (!confirm("Clear current document?")) return;
+
+    editor.textContent = "";
+    preview.innerHTML = "";
+    location.hash = "";
+    localStorage.removeItem("hash");
+
+    currentFileName = "untitled.md";
+
+    editor.focus();
+});
+
+openBtn.addEventListener('click', async () => {
+
+    if (supportsFileSystemAccess) {
+        try {
+            const [handle] = await window.showOpenFilePicker({
+                types: [{
+                    description: 'Markdown Files',
+                    accept: { 'text/markdown': ['.md', '.txt'] }
+                }],
+                multiple: false
+            });
+
+            currentFileHandle = handle;
+            updateFileName(handle.name);
+
+            await saveHandle(handle);
+
+            const file = await handle.getFile();
+            const text = await file.text();
+
+            editor.textContent = text;
+            lastSavedContent = text;
+            markDirty(false);
+
+            const tokens = tokenizer(text);
+            preview.innerHTML = parser(tokens);
+
+        } catch (err) {
+            console.log("Open cancelled");
+        }
+
+    } else {
+        fileInput.click();
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        editor.textContent = reader.result;
+        updateFileName(file.name);
+
+        const tokens = tokenizer(editor.textContent);
+        preview.innerHTML = parser(tokens);
+    };
+
+    reader.readAsText(file);
+});
+
+saveBtn.addEventListener('click', async () => {
+
+    if (supportsFileSystemAccess && currentFileHandle) {
+
+        const hasPermission = await verifyPermission(currentFileHandle);
+        if (!hasPermission) {
+            alert("Permission lost. Use Save As.");
+            return;
+        }
+
+        const writable = await currentFileHandle.createWritable();
+        await writable.write(editor.textContent);
+        await writable.close();
+
+        await saveHandle(currentFileHandle);
+        console.log("Saved handle:", await getSavedHandle());
+
+
+        lastSavedContent = editor.textContent;
+        markDirty(false);
+
+        return;
+    }
+
+    downloadFile(currentFileName, editor.textContent);
+
+    lastSavedContent = editor.textContent;
+    markDirty(false);
+});
+
+saveAsBtn.addEventListener('click', async () => {
+
+    if (supportsFileSystemAccess) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: currentFileName,
+                types: [{
+                    description: 'Markdown Files',
+                    accept: { 'text/markdown': ['.md'] }
+                }]
+            });
+
+            currentFileHandle = handle;
+            updateFileName(handle.name);
+
+            await saveHandle(handle);
+
+            const writable = await handle.createWritable();
+            await writable.write(editor.textContent);
+            await writable.close();
+
+            await saveHandle(currentFileHandle);
+            console.log("Saved handle:", await getSavedHandle());
+
+
+            lastSavedContent = editor.textContent;
+            markDirty(false);
+
+            document.querySelector('.file-name').textContent = currentFileName;
+
+            return;
+
+        } catch (err) {
+            console.log("Save As cancelled");
+        }
+    }
+
+    const name = prompt("Save as:", currentFileName);
+    if (!name) return;
+
+    currentFileName = name.endsWith(".md") ? name : name + ".md";
+    downloadFile(currentFileName, editor.textContent);
+
+    lastSavedContent = editor.textContent;
+    markDirty(false);
+
+    document.querySelector('.file-name').textContent = currentFileName;
+});
 
 load();
