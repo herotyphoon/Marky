@@ -10,6 +10,7 @@ body {
     color: #e5e7eb;
     font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     font-size: clamp(18px, 1.1vw, 20px);
+    tab-size: 2;
 }
 
 .nav {
