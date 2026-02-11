@@ -6,7 +6,7 @@
 
 body {
     background-color: #000;
-    height: 100vh;
+    min-height: 100vh;
     color: #e5e7eb;
     font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -49,7 +49,7 @@ body {
     padding: 6vh 2rem;
     font-size: 16px;
     line-height: 1.7;
-    height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
     overflow-y: visible;
 }
 
