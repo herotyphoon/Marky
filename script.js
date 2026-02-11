@@ -165,6 +165,8 @@ function inLineParser(line) {
 
     result = result.replace(/%%ESC(\d+)%%/g, (m, i) => escapes[i]);
 
+    result = result.replace(/\n/g, '<br>');
+
     return result;
 }
 
@@ -180,7 +182,7 @@ function tokenizer(text) {
         if (paragraphBuffer.length) {
             tokens.push({
                 type: 'p',
-                content: paragraphBuffer.join(' ')
+                content: paragraphBuffer.join('\n')
             });
             paragraphBuffer = [];
         }
