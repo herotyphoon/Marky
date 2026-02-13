@@ -23,7 +23,7 @@ For full functionality, use Chrome or another Chromium-based browser.
   - Parser
   - Persistence
   - File system logic
-- Add your name in [CONTIBUTERS](./CONTRIBUTERS.md).
+- Add your name in [CONTRIBUTERS](./CONTRIBUTERS.md).
 - Update the [CHANGELOG](./CHANGELOG.md) according to the changes made.
 - Update the [README](./README.md) accordingly too.
 
