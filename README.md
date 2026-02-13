@@ -143,3 +143,8 @@ This ensures work is rarely lost.
 
 - Syntax highlighting for code blocks
 - Keyboard shortcuts (Ctrl+S, Ctrl+O)
+
+## License
+
+This project is licensed under the GNU General Public License v3.0.
+See the [LICENSE](./LICENSE) for details.
